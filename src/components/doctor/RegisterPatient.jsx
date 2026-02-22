@@ -32,21 +32,75 @@ const RegisterPatient = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name || !form.age) {
-      setError('Patient name and age are required.')
+
+    // ── Validation ──
+    if (!form.name.trim()) {
+      setError('Patient name is required.')
       return
     }
-    setLoading(true); setError('')
+    if (!form.age || isNaN(form.age)) {
+      setError('Valid age is required.')
+      return
+    }
+    if (!user) {
+      setError('You are not logged in. Please refresh and try again.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    setSuccess('')
+
     try {
-      const id = await registerPatient(user.uid, {
-        ...form,
-        age: parseInt(form.age),
+      console.log('Registering patient for doctor:', user.uid)
+
+      const patientData = {
+        name:        form.name.trim(),
+        age:         parseInt(form.age),
+        gender:      form.gender      || '',
+        phone:       form.phone.trim() || '',
+        email:       form.email.trim() || '',
+        dob:         form.dob         || '',
+        address:     form.address.trim() || '',
+        habitat:     form.habitat     || '',
+        occupation:  form.occupation  || '',
+        ariaClass:   form.ariaClass   || '',
         snot22Score: form.snot22Score ? parseInt(form.snot22Score) : null,
-      })
+        notes:       form.notes.trim() || '',
+        uid:         null,   // linked when patient signs up
+      }
+
+      console.log('Patient data:', patientData)
+
+      const id = await registerPatient(user.uid, patientData)
+
+      console.log('Patient registered with ID:', id)
+
       setSuccess(`Patient "${form.name}" registered successfully!`)
+
+      // Reset form
+      setForm({
+        name: '', age: '', gender: '', phone: '', email: '',
+        dob: '', address: '', habitat: '', occupation: '',
+        ariaClass: '', snot22Score: '', notes: '',
+      })
+
+      // Navigate to patient detail after 1.5s
       setTimeout(() => navigate(`/doctor/patients/${id}`), 1500)
+
     } catch (err) {
-      setError(err.message)
+      console.error('Registration error:', err)
+
+      // Specific error messages
+      if (err.code === 'permission-denied') {
+        setError('Permission denied. Check Firestore rules — make sure your doctor account has write access.')
+      } else if (err.code === 'unavailable') {
+        setError('Firestore unavailable. Check your internet connection.')
+      } else if (err.code === 'unauthenticated') {
+        setError('Session expired. Please log out and log in again.')
+      } else {
+        setError(`Error: ${err.message}`)
+      }
     } finally {
       setLoading(false)
     }
@@ -71,7 +125,18 @@ const RegisterPatient = () => {
         </div>
       </div>
 
-      {error   && <div className="alert-danger">⚠️ {error}</div>}
+      {/* Doctor UID debug info — remove after testing */}
+      {user && (
+        <div className="alert-info text-xs">
+          🔐 Logged in as Doctor UID: <code className="font-mono">{user.uid}</code>
+        </div>
+      )}
+
+      {error   && (
+        <div className="alert-danger">
+          ⚠️ {error}
+        </div>
+      )}
       {success && (
         <div className="alert-success flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" /> {success}
@@ -120,8 +185,8 @@ const RegisterPatient = () => {
             Contact &amp; Login Details
           </h3>
           <div className="alert-info text-xs">
-            📱 The patient will use their <strong>email or mobile number</strong> below
-            to log in to RhinoGuide and update their trigger calendar.
+            📱 The patient will use their <strong>email or mobile number</strong>{' '}
+            below to log in and update their trigger calendar.
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Mobile Number">
@@ -135,10 +200,6 @@ const RegisterPatient = () => {
                 placeholder="patient@email.com" className="input" />
             </Field>
           </div>
-          <p className="text-xs text-gray-400">
-            💡 After registering, share the RhinoGuide link with the patient.
-            They sign up using this email or phone number.
-          </p>
         </div>
 
         {/* Location */}
@@ -214,13 +275,13 @@ const RegisterPatient = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3 justify-end pb-6">
           <button type="button"
             onClick={() => navigate('/doctor/patients')}
             className="btn-secondary">
             Cancel
           </button>
-          <button type="submit" disabled={loading}
+          <button type="submit" disabled={loading || !user}
             className="btn-primary">
             {loading
               ? <span className="w-4 h-4 border-2 border-white
