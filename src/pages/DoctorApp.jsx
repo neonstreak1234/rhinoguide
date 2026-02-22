@@ -8,7 +8,7 @@ import { useAuth }           from '../context/AuthContext'
 import {
   LayoutDashboard, Users, FileText, BarChart2,
   Pill, ClipboardList, Calendar, BookOpen,
-  LogOut, Menu, X, ChevronRight
+  LogOut, Menu, X, ChevronRight, Zap
 } from 'lucide-react'
 
 // Doctor components (we'll build these in Phase 4)
@@ -18,6 +18,7 @@ import RegisterPatient from '../components/doctor/RegisterPatient'
 import PatientDetail  from '../components/doctor/PatientDetail'
 
 // Clinical tools (Phase 5)
+import QuickConsult      from '../components/doctor/QuickConsult'
 import Proforma          from '../components/doctor/Proforma'
 import ARIAClassification from '../components/doctor/ARIAClassification'
 import TreatmentFlow     from '../components/doctor/TreatmentFlow'
@@ -25,13 +26,14 @@ import DrugReference     from '../components/doctor/DrugReference'
 import SNOT22            from '../components/doctor/SNOT22'
 
 const NAV = [
-  { path: '/doctor',            icon: LayoutDashboard, label: 'Dashboard',       end: true },
-  { path: '/doctor/patients',   icon: Users,           label: 'Patients'                   },
-  { path: '/doctor/proforma',   icon: FileText,        label: 'Proforma'                   },
-  { path: '/doctor/aria',       icon: BarChart2,       label: 'ARIA Classification'        },
-  { path: '/doctor/treatment',  icon: Pill,            label: 'Treatment'                  },
-  { path: '/doctor/drugs',      icon: BookOpen,        label: 'Drug Reference'             },
-  { path: '/doctor/snot22',     icon: ClipboardList,   label: 'SNOT-22'                    },
+  { path: '/doctor',               icon: LayoutDashboard, label: 'Dashboard',          end: true },
+  { path: '/doctor/patients',      icon: Users,           label: 'Patients'                      },
+  { path: '/doctor/quick-consult', icon: Zap,             label: 'Quick Consult'                 },
+  { path: '/doctor/proforma',      icon: FileText,        label: 'Proforma'                      },
+  { path: '/doctor/aria',          icon: BarChart2,       label: 'ARIA Classification'           },
+  { path: '/doctor/treatment',     icon: Pill,            label: 'Treatment'                     },
+  { path: '/doctor/drugs',         icon: BookOpen,        label: 'Drug Reference'                },
+  { path: '/doctor/snot22',        icon: ClipboardList,   label: 'SNOT-22'                       },
 ]
 
 const DoctorApp = () => {
@@ -170,6 +172,7 @@ const DoctorApp = () => {
             <Route path="patients"        element={<PatientList />} />
             <Route path="patients/new"    element={<RegisterPatient />} />
             <Route path="patients/:id"    element={<PatientDetail />} />
+            <Route path="quick-consult"   element={<QuickConsult />} />
             <Route path="proforma"        element={<Proforma />} />
             <Route path="proforma/:id"    element={<Proforma />} />
             <Route path="aria"            element={<ARIAClassification />} />
